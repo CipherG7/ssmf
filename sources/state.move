@@ -45,8 +45,52 @@ module ssmf::state;
         state.data = new_data;
     }
 
+    /// Transform state type by consuming old state and creating new one
+    /// This is the KEY function for type-safe transitions
+    /// Creates a new UID because Sui doesn't allow UID reuse
+    public fun transform<From, To>(
+        old_state: State<From>, 
+        ctx: &mut TxContext
+    ): State<To> {
+        let State { id, data } = old_state;
+        object::delete(id);  
+    
+        State {
+            id: object::new(ctx),
+            data,
+        }
+    }
+
+    /// Transform with new data
+    public fun transform_with_data<From, To>(
+        old_state: State<From>,
+        new_data: vector<u8>,
+        ctx: &mut TxContext
+    ): State<To> {
+        let State { id, data: _ } = old_state;
+        object::delete(id);
+        
+        State {
+            id: object::new(ctx),
+            data: new_data,
+        }
+    }
+
+    ///Extract data and destroy the state
+    public fun extract_data<T>(state: State<T>): vector<u8> {
+        let State { id, data} = state;
+        object::delete(id);
+        data
+    }
+
     /// Destroy the state machine (Terminal states only)
     public fun destroy<T>(state: State<T>) {
         let State { id, data: _ } = state;
         object::delete(id);
+    }
+
+    #[test_only]
+    /// Test helper to create a state for testing
+    public fun test_new<T>(ctx: &mut TxContext): State<T> {
+        new_state<T>(ctx)
     }
