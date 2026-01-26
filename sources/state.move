@@ -90,7 +90,6 @@ module ssmf::state;
     }
 
     #[test_only]
-    /// Test helper to create a state for testing
     public fun test_new<T>(ctx: &mut TxContext): State<T> {
         new_state<T>(ctx)
     }
