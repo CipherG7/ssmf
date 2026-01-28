@@ -5,6 +5,7 @@ module ssmf::transition;
 
 
     // Capability that authorizes a specific state transition
+    /// TransitionCap provides compile-time type safety
     public struct TransitionCap<phantom From, phantom To> has key, store {
         id: UID,
     }
