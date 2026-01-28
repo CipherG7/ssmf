@@ -12,10 +12,10 @@ module ssmf::dao;
     public struct Active has drop {}
     public struct Passed has drop {}
 
-    /// Simple proposal
-    public struct Proposal<phantom S> has key {
+    /// Proposal wrapper - holds the state machine
+    /// Note: We only store the State, not the whole proposal as an object
+    public struct Proposal has key, store {
         id: UID,
-        state: State<S>,
         title: String,
         votes_for: u64,
         votes_against: u64,
@@ -25,35 +25,30 @@ module ssmf::dao;
     public fun create_proposal(
         title: String,
         ctx: &mut TxContext
-    ): Proposal<Draft> {
-        Proposal {
+    ): (Proposal, State<Draft>) {
+        let proposal = Proposal {
             id: object::new(ctx),
-            state: state::new_state<Draft>(ctx),
             title,
             votes_for: 0,
             votes_against: 0,
-        }
+        };
+        
+        let state = state::new_state<Draft>(ctx);
+        
+        (proposal, state)
     }
 
     /// Activate proposal: Draft → Active
     public fun activate(
-        proposal: Proposal<Draft>,
+        state: State<Draft>,
         cap: &TransitionCap<Draft, Active>,
         ctx: &mut TxContext
-    ): Proposal<Active> {
-        let new_state = transition::transition<Draft, Active>(proposal.state, cap, ctx);
-
-        Proposal {
-            id: proposal.id,
-            state: new_state,
-            title: proposal.title,
-            votes_for: proposal.votes_for,
-            votes_against: proposal.votes_against,
-        }
+    ): State<Active> {
+        transition::transition<Draft, Active>(state, cap, ctx)
     }
 
     /// Vote on active proposal
-    public fun vote(proposal: &mut Proposal<Active>, approve: bool) {
+    public fun vote(proposal: &mut Proposal, approve: bool) {
         if (approve) {
             proposal.votes_for = proposal.votes_for + 1;
         } else {
@@ -63,37 +58,32 @@ module ssmf::dao;
 
     /// Finalize proposal: Active → Passed (with guards)
     public fun finalize(
-        proposal: Proposal<Active>,
+        proposal: &Proposal,
+        state: State<Active>,
         cap: &TransitionCap<Active, Passed>,
         ctx: &mut TxContext
-    ): Proposal<Passed> {
+    ): State<Passed> {
         // Guard: votes_for must be greater than votes_against
-        let can_pass = invariants::check_greater(
-            proposal.votes_for, 
-            proposal.votes_against
-        );
+        let can_pass = proposal.votes_for > proposal.votes_against;
 
-        let new_state = invariants::guarded_transition<Active, Passed>(
-            proposal.state,
+        // Guarded transition
+        invariants::guarded_transition<Active, Passed>(
+            state,
             cap,
             can_pass,
             ctx
-        );
-
-        Proposal {
-            id: proposal.id,
-            state: new_state,
-            title: proposal.title,
-            votes_for: proposal.votes_for,
-            votes_against: proposal.votes_against,
-        }
+        )
     }
 
     /// View functions
-    public fun votes_for<S>(proposal: &Proposal<S>): u64 {
+    public fun votes_for(proposal: &Proposal): u64 {
         proposal.votes_for
     }
 
-    public fun votes_against<S>(proposal: &Proposal<S>): u64 {
+    public fun votes_against(proposal: &Proposal): u64 {
         proposal.votes_against
+    }
+    
+    public fun title(proposal: &Proposal): String {
+        proposal.title
     }
