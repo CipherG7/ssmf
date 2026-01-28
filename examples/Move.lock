@@ -2,13 +2,14 @@
 
 [move]
 version = 3
-manifest_digest = "44B2F0B3806B9F4EE3FF378521E5D0100F37583AD1F9FE2E1F58ACF8F66123D5"
-deps_digest = "F9B494B64F0615AED0E98FC12A85B85ECD2BC5185C22D30E7F67786BB52E507C"
+manifest_digest = "0E4B530A6B9D87508C71CDE3CA96EF9C8F74421CDFB7E51C01F6647912078F40"
+deps_digest = "397E6A9F7A624706DBDFEE056CE88391A15876868FD18A88504DA74EB458D697"
 dependencies = [
   { id = "Bridge", name = "Bridge" },
   { id = "MoveStdlib", name = "MoveStdlib" },
   { id = "Sui", name = "Sui" },
   { id = "SuiSystem", name = "SuiSystem" },
+  { id = "ssmf", name = "ssmf" },
 ]
 
 [[move.package]]
@@ -42,15 +43,13 @@ dependencies = [
   { id = "Sui", name = "Sui" },
 ]
 
-[move.toolchain-version]
-compiler-version = "1.49.2"
-edition = "2024.beta"
-flavor = "sui"
+[[move.package]]
+id = "ssmf"
+source = { local = "/home/sifa/Documents/sui-projects/ssmf" }
 
-[env]
-
-[env.testnet]
-chain-id = "4c78adac"
-original-published-id = "0x857b2ab7ccb9aaf5a36caa8bad44919e33b0d220a7cc3e72fe946da41533e95b"
-latest-published-id = "0x857b2ab7ccb9aaf5a36caa8bad44919e33b0d220a7cc3e72fe946da41533e95b"
-published-version = "1"
+dependencies = [
+  { id = "Bridge", name = "Bridge" },
+  { id = "MoveStdlib", name = "MoveStdlib" },
+  { id = "Sui", name = "Sui" },
+  { id = "SuiSystem", name = "SuiSystem" },
+]
