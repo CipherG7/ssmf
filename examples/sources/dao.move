@@ -1,5 +1,4 @@
 /// Simple DAO Proposal State Machine Demo
-/// 
 /// States: Draft → Active → Passed
 module ssmf::dao;
     use std::string::String;
@@ -75,7 +74,6 @@ module ssmf::dao;
         )
     }
 
-    /// View functions
     public fun votes_for(proposal: &Proposal): u64 {
         proposal.votes_for
     }
